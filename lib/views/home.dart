@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:food_recipie/models/recipe.dart';
+import 'package:food_recipie/models/recipe_api.dart';
 import 'package:food_recipie/views/widgets/recipe_card.dart';
 
 class HomePage extends StatefulWidget {
@@ -9,6 +11,23 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  List<Recipe> _recipes = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    getRecipes();
+  }
+
+  Future<void> getRecipes() async {
+    _recipes = await RecipeApi.getRecipe();
+    setState(() {
+      _isLoading = false;
+    });
+    // print(_recipes);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,25 +36,32 @@ class _HomePageState extends State<HomePage> {
         elevation: 0.5,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
+          children: const [
+            Icon(
               Icons.restaurant_menu,
               color: Colors.black,
             ),
-            const SizedBox(width: 10),
-            const Text(
+            SizedBox(width: 10),
+            Text(
               'Food Menu',
               style: TextStyle(color: Colors.black),
             )
           ],
         ),
       ),
-      body: const RecipeCard(
-          title: "My Recipe",
-          rating: '3',
-          cookTime: "20 Mins",
-          thumbnailUrl:
-              'https://images.unsplash.com/photo-1499028344343-cd173ffc68a9?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80'),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: _recipes.length,
+              itemBuilder: (context, index) {
+                return RecipeCard(
+                  title: _recipes[index].name,
+                  rating: _recipes[index].rating.toString(),
+                  cookTime: _recipes[index].totalTime,
+                  thumbnailUrl: _recipes[index].images,
+                );
+              },
+            ),
     );
   }
 }
